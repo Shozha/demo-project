@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-roles
+      author: shozha
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column: { name: id,   value: "00000000-0000-0000-0000-000000000001" }
+              - column: { name: name, value: "ROLE_USER" }
+        - insert:
+            tableName: roles
+            columns:
+              - column: { name: id,   value: "00000000-0000-0000-0000-000000000002" }
+              - column: { name: name, value: "ROLE_ADMIN" }
+
+  - changeSet:
+      id: insert-users
+      author: shozha
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: id,       value: "10000000-0000-0000-0000-000000000001" }
+              - column: { name: username, value: "admin" }
+              - column: { name: email,    value: "admin@example.com" }
+              - column: { name: password, value: "$2a$10$NLGIkHS70KostsONZTZbO.3TfQRfdciheCEXZ70XdvS61HVu6ze6i" }
+              - column: { name: enabled,  valueBoolean: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: id,       value: "10000000-0000-0000-0000-000000000002" }
+              - column: { name: username, value: "user" }
+              - column: { name: email,    value: "user@example.com" }
+              - column: { name: password, value: "$2a$10$NLGIkHS70KostsONZTZbO.3TfQRfdciheCEXZ70XdvS61HVu6ze6i" }
+              - column: { name: enabled,  valueBoolean: true }
+
+  - changeSet:
+      id: insert-user-roles
+      author: shozha
+      changes:
+        - insert:
+            tableName: user_roles
+            columns:
+              - column: { name: user_id, value: "10000000-0000-0000-0000-000000000001" }
+              - column: { name: role_id, value: "00000000-0000-0000-0000-000000000001" }
+        - insert:
+            tableName: user_roles
+            columns:
+              - column: { name: user_id, value: "10000000-0000-0000-0000-000000000001" }
+              - column: { name: role_id, value: "00000000-0000-0000-0000-000000000002" }
+        - insert:
+            tableName: user_roles
+            columns:
+              - column: { name: user_id, value: "10000000-0000-0000-0000-000000000002" }
+              - column: { name: role_id, value: "00000000-0000-0000-0000-000000000001" }

@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: project-2
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/agona-db-2026
+    username: postgres
+    password: qwerty
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  liquibase:
+    enabled: true
+    change-log: classpath:changelog/changelog-master.yaml
+
+security:
+  jwt:
+    secret: "zpZKNWTLWFc1gLQ4y1c7qRXjbyCECokRbe1algoJkvS"
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-s: 604800
+
+logging:
+  level:
+    com.technokratos.agona: DEBUG
+    org.springframework.security: INFO
