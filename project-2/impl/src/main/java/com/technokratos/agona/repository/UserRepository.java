@@ -9,12 +9,11 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
+    @Query("select u from User u join fetch u.roles where u.username = :username")
     Optional<User> findByUsername(String username);
 
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
 
-    @Query("select u from User u join fetch u.roles where u.username = :username")
-    Optional<User> findByUsernameWithRoles(String username);
 }

@@ -14,6 +14,7 @@ import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -43,9 +44,12 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
+        UUID userId = ((UserDetailsImpl) userDetails).getId();
+
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .claim(ROLES, roles)
+                .claim("userId", userId.toString())
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiry))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
@@ -65,6 +69,10 @@ public class JwtTokenProvider {
         return parseClaims(token).getExpiration().toInstant();
     }
 
+    public UUID getUserIdFromToken(String token) {
+        String userId = (String) parseClaims(token).get("userId");
+        return UUID.fromString(userId);
+    }
 
     public boolean validateToken(String token) {
         try {

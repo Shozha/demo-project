@@ -21,10 +21,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final String[] PERMIT_ALL = {
-            "/auth/sign-in",
-            "/auth/refresh",
-            "/auth/sign-up",
-            "/auth/logout",
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/refresh",
+            "/api/auth/logout",
     };
 
     private final UserDetailsServiceImpl userDetailsService;

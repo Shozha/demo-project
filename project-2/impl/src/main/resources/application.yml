@@ -27,6 +27,9 @@ security:
     access-token-expiration-ms: 900000
     refresh-token-expiration-s: 604800
 
+scheduling:
+  refresh-token-cleanup-cron: "0 0 3 * * *"
+
 logging:
   level:
     com.technokratos.agona: DEBUG

@@ -17,7 +17,6 @@ public class AdminController implements AdminApi {
     private final UserService userService;
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
     public List<UserDto> getAllUsers() {
         return userService.getAllUsers();
     }

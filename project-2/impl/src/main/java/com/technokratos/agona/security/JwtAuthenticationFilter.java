@@ -1,5 +1,6 @@
 package com.technokratos.agona.security;
 
+import com.technokratos.agona.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,7 +16,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -35,14 +38,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
             String username = jwtTokenProvider.getUsernameFromToken(token);
+            UUID userId = jwtTokenProvider.getUserIdFromToken(token);
+            List<String> roles = jwtTokenProvider.getRolesFromToken(token);
 
-            List<SimpleGrantedAuthority> authorities = jwtTokenProvider.getRolesFromToken(token)
-                    .stream()
+            List<SimpleGrantedAuthority> authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
                     .toList();
 
+            User stub = User.builder()
+                    .id(userId)
+                    .username(username)
+                    .enabled(true)
+                    .roles(new HashSet<>())
+                    .build();
+
+            UserDetailsImpl principal = UserDetailsImpl.builder()
+                    .user(stub)
+                    .authorities(authorities)
+                    .build();
+
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
             authentication.setDetails(
                     new WebAuthenticationDetailsSource().buildDetails(request)

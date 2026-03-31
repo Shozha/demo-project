@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -74,5 +75,12 @@ public class RefreshTokenService {
     public void revokeAllUserTokens(User user) {
         refreshTokenRepository.revokeAllByUser(user);
         log.info("All refresh tokens revoked for user '{}'", user.getUsername());
+    }
+
+    @Scheduled(cron = "${scheduling.refresh-token-cleanup-cron}")
+    @Transactional
+    public void purgeExpiredTokens() {
+        int deleted = refreshTokenRepository.deleteAllExpired(Instant.now());
+        log.info("Purged {} expired refresh tokens", deleted);
     }
 }

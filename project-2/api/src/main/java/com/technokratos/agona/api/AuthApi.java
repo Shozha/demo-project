@@ -4,10 +4,12 @@ import com.technokratos.agona.dto.request.AuthRequest;
 import com.technokratos.agona.dto.request.RefreshRequest;
 import com.technokratos.agona.dto.request.RegisterRequest;
 import com.technokratos.agona.dto.response.AuthResponse;
-import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.validation.Valid;
 
 /**
  * REST-контракт для аутентификации.

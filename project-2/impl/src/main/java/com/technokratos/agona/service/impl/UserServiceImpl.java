@@ -1,7 +1,6 @@
 package com.technokratos.agona.service.impl;
 
 import com.technokratos.agona.dto.UserDto;
-import com.technokratos.agona.entity.User;
 import com.technokratos.agona.mapper.UserMapper;
 import com.technokratos.agona.repository.UserRepository;
 import com.technokratos.agona.service.UserService;
