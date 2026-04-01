@@ -1,4 +1,4 @@
-package com.technokratos.agona.security;
+package com.technokratos.agona.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

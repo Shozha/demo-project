@@ -1,4 +1,4 @@
-package com.technokratos.agona.security;
+package com.technokratos.agona.security.userdetails;
 
 import com.technokratos.agona.entity.User;
 import com.technokratos.agona.repository.UserRepository;

@@ -1,12 +1,12 @@
-package com.technokratos.agona.security;
+package com.technokratos.agona.security.provider;
 
+import com.technokratos.agona.security.userdetails.UserDetailsImpl;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class JwtTokenProvider {
+public class JwtAccessTokenProviderImpl implements JwtAccessTokenProvider {
 
     @Value("${security.jwt.secret}")
     private String jwtSecret;
@@ -29,14 +29,16 @@ public class JwtTokenProvider {
 
     private Key signingKey;
 
-    private static final String ROLES = "roles";
+    private static final String ROLES_CLAIM = "roles";
+    private static final String USER_ID_CLAIM = "userId";
 
     @PostConstruct
     public void init() {
         this.signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateAccessToken(UserDetails userDetails) {
+    @Override
+    public String generateAccessToken(UserDetailsImpl userDetails) {
         Instant now = Instant.now();
         Instant expiry = now.plusMillis(accessTokenExpirationMs);
 
@@ -44,53 +46,52 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        UUID userId = ((UserDetailsImpl) userDetails).getId();
-
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
-                .claim(ROLES, roles)
-                .claim("userId", userId.toString())
+                .claim(ROLES_CLAIM, roles)
+                .claim(USER_ID_CLAIM, userDetails.getId().toString())
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiry))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String getUsernameFromToken(String token) {
-        return parseClaims(token).getSubject();
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<String> getRolesFromToken(String token) {
-        return (List<String>) parseClaims(token).get(ROLES);
-    }
-
-    public Instant getExpiryFromToken(String token) {
-        return parseClaims(token).getExpiration().toInstant();
-    }
-
-    public UUID getUserIdFromToken(String token) {
-        String userId = (String) parseClaims(token).get("userId");
-        return UUID.fromString(userId);
-    }
-
-    public boolean validateToken(String token) {
+    @Override
+    public boolean validateAccessToken(String token) {
         try {
-            parseClaims(token);
+            parseAccessToken(token);
             return true;
         } catch (ExpiredJwtException e) {
-            log.debug("JWT expired: {}", e.getMessage());
+            log.debug("JWT Access Token expired: {}", e.getMessage());
         } catch (JwtException | IllegalArgumentException e) {
-            log.warn("Invalid JWT: {}", e.getMessage());
+            log.warn("Invalid JWT Access Token: {}", e.getMessage());
         }
         return false;
     }
 
-    private Claims parseClaims(String token) {
+    @Override
+    public Claims parseAccessToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    @Override
+    public String getUsernameFromToken(String token) {
+        return parseAccessToken(token).getSubject();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> getRolesFromToken(String token) {
+        return (List<String>) parseAccessToken(token).get(ROLES_CLAIM);
+    }
+
+    @Override
+    public UUID getUserIdFromToken(String token) {
+        String userId = (String) parseAccessToken(token).get(USER_ID_CLAIM);
+        return UUID.fromString(userId);
     }
 }

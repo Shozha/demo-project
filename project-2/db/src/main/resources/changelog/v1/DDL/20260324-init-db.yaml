@@ -117,7 +117,7 @@ databaseChangeLog:
                     unique: true
               - column:
                   name: expiry_date
-                  type: TIMESTAMPTZ
+                  type: TIMESTAMP
                   constraints:
                     nullable: false
               - column:

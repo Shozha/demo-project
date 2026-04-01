@@ -8,7 +8,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "refresh_tokens")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,5 +30,5 @@ public class RefreshToken {
     private Instant expiryDate;
 
     @Column(name = "revoked", nullable = false)
-    private boolean revoked = false;
+    private boolean revoked;
 }

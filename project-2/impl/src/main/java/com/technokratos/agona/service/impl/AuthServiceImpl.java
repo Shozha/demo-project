@@ -10,7 +10,8 @@ import com.technokratos.agona.entity.Role;
 import com.technokratos.agona.entity.User;
 import com.technokratos.agona.repository.RoleRepository;
 import com.technokratos.agona.repository.UserRepository;
-import com.technokratos.agona.security.JwtTokenProvider;
+import com.technokratos.agona.security.provider.JwtAccessTokenProvider;
+import com.technokratos.agona.security.userdetails.UserDetailsImpl;
 import com.technokratos.agona.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,7 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAccessTokenProvider jwtAccessTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
@@ -63,8 +64,8 @@ public class AuthServiceImpl implements AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
 
-        String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
-        Instant accessExpiry = jwtTokenProvider.getExpiryFromToken(accessToken);
+        String accessToken = jwtAccessTokenProvider.generateAccessToken((UserDetailsImpl) userDetails);
+        Instant accessExpiry = jwtAccessTokenProvider.parseAccessToken(accessToken).getExpiration().toInstant();
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
@@ -88,8 +89,8 @@ public class AuthServiceImpl implements AuthService {
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-            String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
-            Instant accessExpiry = jwtTokenProvider.getExpiryFromToken(accessToken);
+            String accessToken = jwtAccessTokenProvider.generateAccessToken((UserDetailsImpl) userDetails);
+            Instant accessExpiry = jwtAccessTokenProvider.parseAccessToken(accessToken).getExpiration().toInstant();
 
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -116,8 +117,8 @@ public class AuthServiceImpl implements AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(oldRefreshToken.getUser().getUsername());
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(userDetails);
-        Instant newAccessExpiry = jwtTokenProvider.getExpiryFromToken(newAccessToken);
+        String newAccessToken = jwtAccessTokenProvider.generateAccessToken((UserDetailsImpl) userDetails);
+        Instant newAccessExpiry = jwtAccessTokenProvider.parseAccessToken(newAccessToken).getExpiration().toInstant();
 
         RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
 
