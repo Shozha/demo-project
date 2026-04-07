@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestClientException;
 import ru.itis.exception.ServiceException;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,18 @@ public class GlobalExceptionHandler {
                         .time(LocalDateTime.now())
                         .exceptionName(ex.getClass().getSimpleName())
                         .message(ex.getMessage())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(RestClientException.class)
+    public ResponseEntity<ExceptionMessage> handleRestClientException(RestClientException ex) {
+        log.warn("Rest client failed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ExceptionMessage.builder()
+                        .time(LocalDateTime.now())
+                        .exceptionName(ex.getClass().getSimpleName())
+                        .message(String.format("External service error: %s", ex.getMessage()))
                         .build()
                 );
     }

@@ -20,7 +20,6 @@ public class ContractController {
     private final ContractMapper contractMapper;
 
     @GetMapping("/contract/{name}")
-    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ContractResponse> getContract(@PathVariable("name") String name) {
         log.info("Fetching contract by name: {}", name);
         Contract contract = contractService.getByContractName(name);
@@ -29,12 +28,11 @@ public class ContractController {
     }
 
     @PostMapping("/contract")
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ContractResponse> createContract() {
         log.info("Creating new empty contract");
         Contract contract = contractService.createEmptyContract();
         log.info("New contract created with id: {}, name: {}", contract.getId(), contract.getContractName());
-        return ResponseEntity.ok(contractMapper.toContractResponse(contract));
+        return ResponseEntity.status(HttpStatus.CREATED).body(contractMapper.toContractResponse(contract)) ;
     }
 
 }

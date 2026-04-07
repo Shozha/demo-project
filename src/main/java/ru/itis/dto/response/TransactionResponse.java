@@ -14,9 +14,9 @@ import java.util.List;
 public class TransactionResponse {
 
     private String contractName;
-    //date-time
+    //date-time должно быть тогда Instant
     private String from;
-    //date-time
+    //date-time должно быть тогда Instant
     private String to;
 
     private List<TransactionElementResponse> transactions;

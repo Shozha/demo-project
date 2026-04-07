@@ -42,11 +42,6 @@ public class ContractServiceImpl implements ContractService {
                 .orElse(BigDecimal.ZERO);
     }
 
-    @Override
-    public Contract save(Contract contract) {
-        return contractRepository.save(contract);
-    }
-
     @Transactional
     @Override
     public void updateContractName(UUID id, Contract contract) {
@@ -73,7 +68,6 @@ public class ContractServiceImpl implements ContractService {
     public Contract createEmptyContract() {
         log.info("Creating empty contract with random name");
         Contract contract = Contract.builder()
-                .id(UUID.randomUUID())
                 .contractName(generateRandomContractName())
                 .createdDate(Instant.now())
                 .balance(BigDecimal.ZERO)

@@ -13,8 +13,6 @@ public interface ContractService {
 
     BigDecimal getBalanceByContractName(String name);
 
-    Contract save(Contract contract);
-
     void updateContractName(UUID id, Contract contract);
 
     void processTransfer(Contract source, Contract target, BigDecimal amount);

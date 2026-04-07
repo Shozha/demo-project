@@ -9,18 +9,10 @@ import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
-    List<Transaction> findAllBySourceContractId(UUID sourceContractId);
-
-    @Query(
-            value = """
-            SELECT t.*
-            FROM transactions t
-            JOIN contracts c
-              ON t.source_contract_id = c.id
-              OR t.target_contract_id = c.id
-            WHERE c.contract_name = ?
-            """,
-            nativeQuery = true
-    )
+    @Query("""
+    SELECT t FROM Transaction t, Contract c
+    WHERE (t.sourceContractId = c.id OR t.targetContractId = c.id)
+      AND c.contractName = ?1
+    """)
     List<Transaction> findAllByContractName(String contractName);
 }

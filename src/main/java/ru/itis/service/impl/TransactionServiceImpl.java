@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 @Slf4j
 @Service
@@ -31,38 +33,54 @@ public class TransactionServiceImpl implements TransactionService {
     private final ContractService contractService;
     private final UserRestrictionsClient userRestrictionsClient;
     private final CardsClient cardsClient;
+    private final ExecutorService httpCallsExecutor;
+
+    public static final String BLOCK_TYPE_TOTAL = "TOTAL";
 
     @Override
     @Transactional
-    public Transaction save(UUID sourceContractId, UUID targetContractId, BigDecimal amount, String description) {
-        log.info("Initiating transfer: amount={} from contract={} to contract={}", amount, sourceContractId, targetContractId);
+    public Transaction save(String sourceContractName, String targetContractName, BigDecimal amount, String description) {
+        log.info("Initiating transfer: amount={} from contract={} to contract={}", amount, sourceContractName, targetContractName);
         if (amount == null || amount.signum() <= 0) {
             throw new InvalidAmountException();
         }
 
-        Contract source = contractService.getById(sourceContractId);
-        Contract target = contractService.getById(targetContractId);
+        Contract source = contractService.getByContractName(sourceContractName) ;
+        Contract target = contractService.getByContractName(targetContractName) ;
+        //Отправляем запрос в User Restrictions
+        CompletableFuture<UserRestrictionResponse> srcFuture = CompletableFuture
+                .supplyAsync(
+                        () -> cardsClient.getCardByContractName(source.getContractName()),
+                        httpCallsExecutor
+                )
+                .thenApplyAsync(
+                        card -> userRestrictionsClient.getRestrictions(UUID.fromString(card.getUserId())),
+                        httpCallsExecutor
+                );
 
-        log.debug("Fetching card info from CardsClient for contracts");
-        CardResponse sourceCard = cardsClient.getCardByContractName(source.getContractName());
-        log.debug("Source card info: userId={}", sourceCard.getUserId());
+        CompletableFuture<UserRestrictionResponse> trgFuture = CompletableFuture
+                .supplyAsync(
+                        () -> cardsClient.getCardByContractName(target.getContractName()),
+                        httpCallsExecutor
+                )
+                .thenApplyAsync(
+                        card -> userRestrictionsClient.getRestrictions(UUID.fromString(card.getUserId())),
+                        httpCallsExecutor
+                );
 
-        CardResponse targetCard = cardsClient.getCardByContractName(target.getContractName());
-        log.debug("Target card info: userId={}", targetCard.getUserId());
+        CompletableFuture.allOf(srcFuture, trgFuture).join();
 
-        UUID sourceUserId = UUID.fromString(sourceCard.getUserId());
-        UUID targetUserId = UUID.fromString(targetCard.getUserId());
+        UserRestrictionResponse src = srcFuture.join();
+        UserRestrictionResponse trg = trgFuture.join();
 
-        log.debug("Checking user restrictions from UserRestrictionsClient");
-        UserRestrictionResponse src = userRestrictionsClient.getRestrictions(sourceUserId);
-        log.debug("User {} restrictions: blocked={}", sourceUserId, src.isBlocked());
-        if (src.isBlocked()) {
+        UUID sourceUserId = UUID.fromString(src.getUserId());
+        UUID targetUserId = UUID.fromString(trg.getUserId());
+
+        if (BLOCK_TYPE_TOTAL.equals(src.getBlockType())) {
             throw new UserBlockedException(sourceUserId);
         }
 
-        UserRestrictionResponse trg = userRestrictionsClient.getRestrictions(targetUserId);
-        log.debug("User {} restrictions: blocked={}", targetUserId, trg.isBlocked());
-        if (trg.isBlocked()) {
+        if (BLOCK_TYPE_TOTAL.equals(trg.getBlockType())) {
             throw new UserBlockedException(targetUserId);
         }
 
@@ -70,8 +88,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         return transactionRepository.save(
                 Transaction.builder()
-                        .sourceContractId(sourceContractId)
-                        .targetContractId(targetContractId)
+                        .sourceContractId(source.getId())
+                        .targetContractId(target.getId())
                         .sourceUserId(sourceUserId)
                         .targetUserId(targetUserId)
                         .amount(amount)
@@ -85,12 +103,6 @@ public class TransactionServiceImpl implements TransactionService {
         log.debug("Fetching transaction by id: {}", transactionId);
         return transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
-    }
-
-    @Override
-    public List<Transaction> findAllTransactionsByContractId(UUID sourceContractId) {
-        log.debug("Fetching all transactions for contract id: {}", sourceContractId);
-        return transactionRepository.findAllBySourceContractId(sourceContractId);
     }
 
     @Override
