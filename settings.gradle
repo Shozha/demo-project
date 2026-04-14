@@ -1,2 +1,0 @@
-rootProject.name = 'project-2'
-include 'api', 'db', 'impl'
