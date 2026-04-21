@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-roles
+      author: shozha
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column: { name: id,   value: "e2adb532-35f5-4dbc-bca0-5409f9d0f2c0" }
+              - column: { name: name, value: "ROLE_USER" }
+        - insert:
+            tableName: roles
+            columns:
+              - column: { name: id,   value: "4170e7e4-4345-4ae3-81f0-91d762a35b74" }
+              - column: { name: name, value: "ROLE_ADMIN" }
+
+  - changeSet:
+      id: insert-users
+      author: shozha
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: id,       value: "f3588715-c237-4b6b-8c2f-9f078b8f2f41" }
+              - column: { name: username, value: "admin" }
+              - column: { name: email,    value: "admin@example.com" }
+              - column: { name: password, value: "$2a$10$NLGIkHS70KostsONZTZbO.3TfQRfdciheCEXZ70XdvS61HVu6ze6i" }
+              - column: { name: enabled,  valueBoolean: true }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: id,       value: "c05dcdbd-37ce-4ff7-ac94-4f9a44b44fd1" }
+              - column: { name: username, value: "user" }
+              - column: { name: email,    value: "user@example.com" }
+              - column: { name: password, value: "$2a$10$NLGIkHS70KostsONZTZbO.3TfQRfdciheCEXZ70XdvS61HVu6ze6i" }
+              - column: { name: enabled,  valueBoolean: true }
+
+  - changeSet:
+      id: insert-user-roles
+      author: shozha
+      changes:
+        - insert:
+            tableName: user_roles
+            columns:
+              - column: { name: user_id, value: "c05dcdbd-37ce-4ff7-ac94-4f9a44b44fd1" }
+              - column: { name: role_id, value: "e2adb532-35f5-4dbc-bca0-5409f9d0f2c0" }
+        - insert:
+            tableName: user_roles
+            columns:
+              - column: { name: user_id, value: "f3588715-c237-4b6b-8c2f-9f078b8f2f41" }
+              - column: { name: role_id, value: "e2adb532-35f5-4dbc-bca0-5409f9d0f2c0" }
+        - insert:
+            tableName: user_roles
+            columns:
+              - column: { name: user_id, value: "f3588715-c237-4b6b-8c2f-9f078b8f2f41" }
+              - column: { name: role_id, value: "4170e7e4-4345-4ae3-81f0-91d762a35b74" }

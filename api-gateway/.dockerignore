@@ -1,9 +1,0 @@
-.gradle/
-src/
-*.md
-.gitignore
-Dockerfile
-
-build/
-!build/libs/
-!build/libs/*.jar
