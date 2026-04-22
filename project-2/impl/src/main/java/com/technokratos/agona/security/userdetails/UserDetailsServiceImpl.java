@@ -29,7 +29,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .toList();
 
         return UserDetailsImpl.builder()
-                .user(user)
+                .id(user.getId())
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .enabled(user.isEnabled())
                 .authorities(authorities)
                 .build();
 

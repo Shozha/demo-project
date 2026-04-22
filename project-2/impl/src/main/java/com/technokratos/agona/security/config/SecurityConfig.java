@@ -26,8 +26,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String[] PERMIT_ALL = {
             "/api/auth/login",
             "/api/auth/register",
-            "/api/auth/refresh",
-            "/api/auth/logout",
+            "/api/auth/refresh"
     };
 
     private final UserDetailsServiceImpl userDetailsService;
@@ -41,14 +40,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin().disable()
                 .httpBasic().disable()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                    .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .and()
                 .authorizeRequests()
-                .antMatchers(PERMIT_ALL).permitAll()
-                .anyRequest().authenticated()
+                    .antMatchers(PERMIT_ALL).permitAll()
+                    .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(tokenAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);

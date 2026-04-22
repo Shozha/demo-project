@@ -1,6 +1,5 @@
 package com.technokratos.agona.security.userdetails;
 
-import com.technokratos.agona.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,17 +14,11 @@ import java.util.UUID;
 @Builder
 public class UserDetailsImpl implements UserDetails {
 
-    private final User user;
+    private final UUID id;
+    private final String username;
+    private final String password;
+    private final boolean enabled;
     private final Collection<? extends GrantedAuthority> authorities;
-
-    public UUID getId()       { return user.getId(); }
-
-    @Override
-    public String getUsername()  { return user.getUsername(); }
-    @Override
-    public String getPassword()  { return user.getPassword(); }
-    @Override
-    public boolean isEnabled()   { return user.isEnabled(); }
 
     @Override
     public boolean isAccountNonExpired()     { return true; }
