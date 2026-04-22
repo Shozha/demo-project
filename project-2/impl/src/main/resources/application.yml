@@ -36,16 +36,17 @@ minio:
   url: http://localhost:9000
   access-key: minio_user
   secret-key: minio_qwerty
-  bucket-name: products
+  bucket-name: agona-files
 
 security:
   jwt:
     secret: "zpZKNWTLWFc1gLQ4y1c7qRXjbyCECokRbe1algoJkvS"
     access-token-expiration-ms: 900000
     refresh-token-expiration-s: 604800
+    revoked-token-retention-s: 86400
 
 scheduling:
-  refresh-token-cleanup-cron: "0 0 3 * * *"
+  token-cleanup-cron: "0 0 3 * * ?"
 
 logging:
   level:

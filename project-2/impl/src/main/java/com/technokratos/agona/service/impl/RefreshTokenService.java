@@ -10,7 +10,6 @@ import com.technokratos.agona.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +26,9 @@ public class RefreshTokenService {
 
     @Value("${security.jwt.refresh-token-expiration-s:604800}")
     private long refreshTokenExpirationS;
+
+    @Value("${security.jwt.revoked-token-retention-s:86400}")
+    private long revokedTokenRetentionS;
 
     public RefreshToken createRefreshToken(User user) {
         RefreshToken token = RefreshToken.builder()
@@ -77,10 +79,15 @@ public class RefreshTokenService {
         log.info("All refresh tokens revoked for user '{}'", user.getUsername());
     }
 
-    @Scheduled(cron = "${scheduling.refresh-token-cleanup-cron}")
     @Transactional
-    public void purgeExpiredTokens() {
-        int deleted = refreshTokenRepository.deleteAllExpired(Instant.now());
-        log.info("Purged {} expired refresh tokens", deleted);
+    public int cleanupTokens() {
+        Instant now = Instant.now();
+        int revokedDeleted = refreshTokenRepository.deleteAllByRevokedIsTrueAndExpiryDateBefore(now.minusSeconds(revokedTokenRetentionS));
+        int expiredDeleted = refreshTokenRepository.deleteAllByExpiryDateBefore(now);
+
+        int totalDeleted = revokedDeleted + expiredDeleted;
+        log.info("Token cleanup finished. Deleted {} revoked and {} expired tokens.", revokedDeleted, expiredDeleted);
+
+        return totalDeleted;
     }
 }

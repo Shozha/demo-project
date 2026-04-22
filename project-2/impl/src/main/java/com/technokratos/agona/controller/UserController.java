@@ -18,7 +18,7 @@ public class UserController implements UserApi {
 
     @Override
     @PreAuthorize("hasRole('USER')")
-    public UserDto me(@AuthenticationPrincipal(expression = "id") UUID userId) {
+    public UserDto me(@AuthenticationPrincipal UUID userId) {
         return userService.getCurrentUser(userId);
     }
 }
