@@ -25,11 +25,4 @@ public class DeletedFileLog {
 
     @Column(name = "created_at", updatable = false, nullable = false)
     private Instant createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.createdAt == null) {
-            this.createdAt = Instant.now();
-        }
-    }
 }

@@ -11,12 +11,13 @@ import org.springframework.context.annotation.Configuration;
 public class QuartzConfig {
 
     @Value("${scheduling.token-cleanup-cron:0 0 3 * * ?}")
-    private String tokenCleanupCron;
+    private String tokenCron;
+
+    @Value("${scheduling.minio-cleanup-cron:0 0 4 * * ?}")
+    private String minioCron;
 
     private static final String IMAGE_CLEAN_UP_JOB_NAME = "imageCleanupJob";
     private static final String TOKEN_CLEAN_UP_JOB_NAME = "tokenCleanupJob";
-
-    private static final int IMAGE_CLEAN_UP_INTERVAL = 1;
 
     @Bean
     public JobDetail imageCleanupJobDetail() {
@@ -29,8 +30,8 @@ public class QuartzConfig {
     @Bean
     public Trigger imageCleanupTrigger(JobDetail imageCleanupJobDetail) {
         return TriggerBuilder.newTrigger().forJob(imageCleanupJobDetail)
-                .withSchedule(SimpleScheduleBuilder
-                        .simpleSchedule().withIntervalInHours(IMAGE_CLEAN_UP_INTERVAL).repeatForever())
+                .withSchedule(CronScheduleBuilder
+                        .cronSchedule(minioCron))
                 .build();
     }
 
@@ -46,7 +47,7 @@ public class QuartzConfig {
     public Trigger tokenCleanupTrigger(JobDetail tokenCleanupJobDetail) {
         return TriggerBuilder.newTrigger().forJob(tokenCleanupJobDetail)
                 .withSchedule(CronScheduleBuilder
-                        .cronSchedule(tokenCleanupCron))
+                        .cronSchedule(tokenCron))
                 .build();
     }
 }

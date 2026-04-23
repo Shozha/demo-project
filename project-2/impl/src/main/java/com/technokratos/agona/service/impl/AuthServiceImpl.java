@@ -15,11 +15,13 @@ import com.technokratos.agona.exception.user.UsernameAlreadyExistsException;
 import com.technokratos.agona.security.provider.JwtAccessTokenProvider;
 import com.technokratos.agona.security.userdetails.UserDetailsImpl;
 import com.technokratos.agona.service.AuthService;
+import com.technokratos.agona.service.RefreshTokenService;
 import com.technokratos.agona.service.RoleService;
 import com.technokratos.agona.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -63,9 +65,17 @@ public class AuthServiceImpl implements AuthService {
 
         userService.save(user);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        UserDetailsImpl principal = UserDetailsImpl.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .enabled(user.isEnabled())
+                .authorities(user.getRoles().stream()
+                        .map(r -> new SimpleGrantedAuthority(r.getName()))
+                        .toList())
+                .build();
 
-        String accessToken = jwtAccessTokenProvider.generateAccessToken((UserDetailsImpl) userDetails);
+        String accessToken = jwtAccessTokenProvider.generateAccessToken(principal);
         Instant accessExpiry = jwtAccessTokenProvider.parseAccessToken(accessToken).getExpiration().toInstant();
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);

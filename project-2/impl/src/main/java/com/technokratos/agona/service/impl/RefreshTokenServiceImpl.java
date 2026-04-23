@@ -7,6 +7,7 @@ import com.technokratos.agona.exception.auth.RefreshTokenExpiredException;
 import com.technokratos.agona.exception.auth.RefreshTokenNotFoundException;
 import com.technokratos.agona.exception.auth.RefreshTokenRevokedException;
 import com.technokratos.agona.repository.RefreshTokenRepository;
+import com.technokratos.agona.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class RefreshTokenService {
+public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -30,6 +31,7 @@ public class RefreshTokenService {
     @Value("${security.jwt.revoked-token-retention-s:86400}")
     private long revokedTokenRetentionS;
 
+    @Override
     public RefreshToken createRefreshToken(User user) {
         RefreshToken token = RefreshToken.builder()
                 .user(user)
@@ -41,6 +43,7 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(token);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public RefreshToken verifyToken(String tokenValue) {
         RefreshToken token = refreshTokenRepository.findByToken(tokenValue)
@@ -58,6 +61,7 @@ public class RefreshTokenService {
         return token;
     }
 
+    @Override
     public RefreshToken rotateRefreshToken(RefreshToken oldToken) {
         oldToken.setRevoked(true);
         refreshTokenRepository.save(oldToken);
@@ -65,6 +69,7 @@ public class RefreshTokenService {
         return createRefreshToken(oldToken.getUser());
     }
 
+    @Override
     public void revokeToken(String tokenValue) {
         refreshTokenRepository.findByToken(tokenValue).ifPresent(token -> {
             token.setRevoked(true);
@@ -74,11 +79,13 @@ public class RefreshTokenService {
         });
     }
 
+    @Override
     public void revokeAllUserTokens(User user) {
         refreshTokenRepository.revokeAllByUser(user);
         log.info("All refresh tokens revoked for user '{}'", user.getUsername());
     }
 
+    @Override
     @Transactional
     public int cleanupTokens() {
         Instant now = Instant.now();

@@ -32,6 +32,11 @@ spring:
   cache:
     type: redis
 
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+
 minio:
   url: http://localhost:9000
   access-key: ${MINIO_ROOT_USER}
@@ -47,6 +52,7 @@ security:
 
 scheduling:
   token-cleanup-cron: "0 0 3 * * ?"
+  minio-cleanup-cron: "0 0 4 * * ?"
 
 logging:
   level:

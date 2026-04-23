@@ -4,9 +4,11 @@ import com.technokratos.agona.config.CacheConfig;
 import com.technokratos.agona.document.ProductDocument;
 import com.technokratos.agona.dto.request.ProductRequest;
 import com.technokratos.agona.dto.response.ProductResponse;
+import com.technokratos.agona.entity.DeletedFileLog;
 import com.technokratos.agona.entity.Product;
 import com.technokratos.agona.exception.product.ProductNotFoundException;
 import com.technokratos.agona.mapper.ProductMapper;
+import com.technokratos.agona.repository.DeletedFileLogRepository;
 import com.technokratos.agona.repository.ProductMongoRepository;
 import com.technokratos.agona.repository.ProductRepository;
 import com.technokratos.agona.service.FileService;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +34,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMongoRepository productMongoRepository;
+    private final DeletedFileLogRepository deletedFileLogRepository;
     private final ProductMapper productMapper;
     private final FileService minioService;
 
@@ -102,9 +106,18 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @CacheEvict(value = CacheConfig.PRODUCT_CACHE, key = "#id")
     public void delete(UUID id) {
-        if (!productRepository.existsById(id)) {
-            throw new ProductNotFoundException(id);
+        Product entity = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        if (entity.getImageUrl() != null && !entity.getImageUrl().isEmpty()) {
+            deletedFileLogRepository.save(
+                    DeletedFileLog.builder()
+                            .fileName(entity.getImageUrl())
+                            .createdAt(Instant.now())
+                            .build()
+            );
         }
+
         productRepository.deleteById(id);
         productMongoRepository.deleteByProductId(id);
         log.debug("Product deleted: {}", id);
@@ -116,6 +129,15 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse uploadImage(UUID id, MultipartFile file) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
+
+        if (entity.getImageUrl() != null && !entity.getImageUrl().isEmpty()) {
+            deletedFileLogRepository.save(
+                    DeletedFileLog.builder()
+                            .fileName(entity.getImageUrl())
+                            .createdAt(Instant.now())
+                            .build()
+            );
+        }
 
         String imageUrl = minioService.uploadFile(file);
         entity.setImageUrl(imageUrl);
