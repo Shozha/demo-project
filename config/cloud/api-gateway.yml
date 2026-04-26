@@ -1,0 +1,48 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: notification-service-route
+              uri: lb://notification-service
+              predicates:
+                - Path=/notification/**
+              filters:
+                - AddRequestHeader=X-Gateway, GatewayActive
+
+            - id: review-service-route
+              uri: lb://review-service
+              predicates:
+                - Path=/review/**
+              filters:
+                - AddRequestHeader=X-Gateway, GatewayActive
+
+            - id: submission-service-route
+              uri: lb://submission-service
+              predicates:
+                - Path=/submission/**
+              filters:
+                - AddRequestHeader=X-Gateway, GatewayActive
+
+            - id: task-service-route
+              uri: lb://task-service
+              predicates:
+                - Path=/task/**
+              filters:
+                - AddRequestHeader=X-Gateway, GatewayActive
+
+    security:
+      oauth2:
+        resourceserver:
+          jwt:
+            issuer-uri: http://keycloak:8180/realms/demo
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
