@@ -4,7 +4,6 @@ import com.technokratos.agona.api.TaskApi;
 import com.technokratos.agona.api.dto.TaskRequestDto;
 import com.technokratos.agona.api.dto.TaskResponseDto;
 import com.technokratos.agona.api.dto.TaskUpdateDto;
-import com.technokratos.agona.exception.ServiceException;
 import com.technokratos.agona.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +23,7 @@ public class TaskController implements TaskApi {
         return taskService.getById(id);
     }
 
+    @PreAuthorize("hasRole('TEACHER')")
     @Override
     public List<TaskResponseDto> getAllTasks() {
         return taskService.getAll();
@@ -35,11 +35,13 @@ public class TaskController implements TaskApi {
         return taskService.create(taskRequestDto);
     }
 
+    @PreAuthorize("hasRole('TEACHER')")
     @Override
     public TaskResponseDto update(UUID id, TaskUpdateDto taskUpdateDto) {
         return taskService.update(id, taskUpdateDto);
     }
 
+    @PreAuthorize("hasRole('TEACHER')")
     @Override
     public void delete(UUID id) {
         taskService.delete(id);

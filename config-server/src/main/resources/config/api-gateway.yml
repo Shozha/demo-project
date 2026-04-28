@@ -1,0 +1,73 @@
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8180/realms/peer-review
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: api-gateway-client
+            client-secret: YUxGMd3dWtnLUOOLTXY0R6zR7LsmlOaf
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  session:
+    store-type: redis
+    timeout: 30m
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          default-filters:
+            - TokenRelay=
+            - RemoveRequestHeader=Cookie
+            - SaveSession
+          routes:
+            - id: task-service-route
+              uri: lb://task-service
+              predicates:
+                - Path=/api/v1/tasks/**
+              filters:
+                - AddRequestHeader=X-Gateway, GatewayActive
+
+            - id: review-service-route
+              uri: lb://review-service
+              predicates:
+                - Path=/api/v1/reviews/**
+              filters:
+                - AddRequestHeader=X-Gateway, GatewayActive
+
+            - id: submission-service-route
+              uri: lb://submission-service
+              predicates:
+                - Path=/api/v1/submissions/**
+              filters:
+                - AddRequestHeader=X-Gateway, GatewayActive
+
+            - id: notification-service-route
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/v1/notifications/**
+              filters:
+                - AddRequestHeader=X-Gateway, GatewayActive
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

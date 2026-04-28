@@ -127,10 +127,10 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-#      keycloak:
-#        condition: service_started
-#      config-server:
-#        condition: service_healthy
+      keycloak:
+        condition: service_started
+      config-server:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVERURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -138,7 +138,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=notif_user
       - SPRING_DATASOURCE_PASSWORD=12345
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/demo
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/peer-review
     networks:
       - microservices-network
     restart: unless-stopped
@@ -155,10 +155,10 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-#      keycloak:
-#        condition: service_started
-#      config-server:
-#        condition: service_healthy
+      keycloak:
+        condition: service_started
+      config-server:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVERURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -166,7 +166,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=review_user
       - SPRING_DATASOURCE_PASSWORD=12345
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/demo
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/peer-review
     networks:
       - microservices-network
     restart: unless-stopped
@@ -194,7 +194,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=task_user
       - SPRING_DATASOURCE_PASSWORD=12345
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/demo
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/peer-review
     networks:
       - microservices-network
     restart: unless-stopped
@@ -214,16 +214,17 @@ services:
       - "5436:5432"
 
   keycloak:
-    image: quay.io/keycloak/keycloak:24.0.3
+    image: quay.io/keycloak/keycloak:25.0
     container_name: keycloak
     command: start-dev --import-realm
     environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: keycloak
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
       KC_HTTP_PORT: 8180
     ports:
       - "8180:8180"
@@ -231,6 +232,13 @@ services:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     depends_on:
       - keycloak-db
+    networks:
+      - microservices-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
     networks:
       - microservices-network
 
@@ -247,7 +255,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVERURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/demo
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8180/realms/peer-review
     ports:
       - "8086:8086"
     networks:

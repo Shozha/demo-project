@@ -1,4 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: DDL/20260324-init-db.yaml
-      relativeToChangelogFile: true
